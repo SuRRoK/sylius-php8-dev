@@ -16,7 +16,7 @@ services:
       - APP_ENV=dev
       - APP_DEBUG=1
       - APP_SECRET=EDITME
-      - DATABASE_URL=mysql://sylius:nopassword@mysql/sylius
+      - DATABASE_URL=mysql://sylius:password@mysql/sylius
       - MAILER_URL=smtp://mailhog:1025
       - PHP_DATE_TIMEZONE=${PHP_DATE_TIMEZONE:-UTC}
     volumes:
@@ -29,18 +29,19 @@ services:
       - public-media:/srv/sylius/public/media:rw
 
   mysql:
-    image: percona:5.7
+    image: mysql:5.7
+    restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-nopassword}
+      - MYSQL_ROOT_PASSWORD=secret
       - MYSQL_DATABASE=sylius
       - MYSQL_USER=sylius
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-nopassword}
+      - MYSQL_PASSWORD=password
     volumes:
       - mysql-data:/var/lib/mysql:rw
       # you may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./docker/mysql/data:/var/lib/mysql:rw,delegated
     ports:
-      - "3306:3306"
+      - "22306:3306"
 
   nodejs:
     build:
@@ -81,7 +82,7 @@ services:
       # - ./public/media:/srv/sylius/public/media:ro
       - public-media:/srv/sylius/public/media:ro,nocopy
     ports:
-      - "80:80"
+      - "22080:80"
 
   mailhog:
     # do not use in production!
@@ -91,7 +92,7 @@ services:
     # volumes:
     #   - ./docker/mailhog/maildir:/maildir:rw,delegated
     ports:
-      - "8025:8025"
+      - "22025:8025"
 
 volumes:
   mysql-data:

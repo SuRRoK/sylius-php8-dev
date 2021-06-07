@@ -1,9 +1,9 @@
 # the different stages of this Dockerfile are meant to be built into separate images
 # https://docs.docker.com/compose/compose-file/#target
 
-ARG PHP_VERSION=7.3
+ARG PHP_VERSION=8.0
 ARG NODE_VERSION=10
-ARG NGINX_VERSION=1.16
+ARG NGINX_VERSION=1.19
 
 FROM php:${PHP_VERSION}-fpm-alpine AS sylius_php
 
@@ -32,8 +32,7 @@ RUN set -eux; \
 		zlib-dev \
 	; \
 	\
-	docker-php-ext-configure gd --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include --with-webp-dir=/usr/include --with-freetype-dir=/usr/include/; \
-	docker-php-ext-configure zip --with-libzip; \
+	docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-webp=/usr/include --with-freetype=/usr/include/; \
 	docker-php-ext-install -j$(nproc) \
 		exif \
 		gd \
@@ -66,8 +65,8 @@ COPY docker/php/php-cli.ini /usr/local/etc/php/php-cli.ini
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
 ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN set -eux; \
-	composer clear-cache
+#RUN set -eux; \
+#	composer clear-cache
 ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
 WORKDIR /srv/sylius
@@ -77,9 +76,7 @@ ARG APP_ENV=prod
 
 # prevent the reinstallation of vendors at every changes in the source code
 COPY composer.json composer.lock symfony.lock ./
-RUN set -eux; \
-	composer install --prefer-dist --no-autoloader --no-scripts --no-progress --no-suggest; \
-	composer clear-cache
+RUN composer install --prefer-dist --no-autoloader --no-scripts --no-progress --no-suggest
 
 # copy only specifically what we need
 COPY .env .env.prod .env.test .env.test_cached ./
